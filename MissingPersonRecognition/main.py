@@ -10,23 +10,17 @@
 # For real-time video recognition, run in "recognize-video" mode.
 # Example: python main.py --mode recognize-video
 
+import argparse
+from database_utils import store_person, fetch_missing_persons, delete_person
+from recognition_utils import recognize_faces_in_image, recognize_faces_in_video
+from alert_utils import send_email_alert
 from dotenv import load_dotenv
 import os
 
+# Load environment variables
 load_dotenv()
 
 EMAIL = os.getenv("EMAIL")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
-GMAIL_CLIENT_ID = os.getenv("GMAIL_CLIENT_ID")
-GMAIL_CLIENT_SECRET = os.getenv("GMAIL_CLIENT_SECRET")
-GMAIL_REFRESH_TOKEN = os.getenv("GMAIL_REFRESH_TOKEN")
-
-
-
-import argparse
-from database_utils import store_person, fetch_missing_persons, get_image, delete_person
-from recognition_utils import recognize_faces_in_image, recognize_faces_in_video
-from alert_utils import send_email_alert
 
 def main():
     parser = argparse.ArgumentParser(description="Missing Person Recognition System")
@@ -52,9 +46,9 @@ def main():
                 metadata[key] = value
 
         # Store the missing person
-        file_id = store_person(args.file, args.name, metadata)
-
-        print(f"Stored missing person: {args.name} (ID: {file_id})")
+        with open(args.file, "rb") as image_file:
+            image_bytes = image_file.read()
+        store_person(args.name, metadata, image_bytes)
 
     elif args.mode == "recognize-image":
         if not args.file:
@@ -74,3 +68,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
