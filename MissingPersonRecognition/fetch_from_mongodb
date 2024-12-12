@@ -1,0 +1,18 @@
+from database_utils import fetch_missing_persons
+
+def fetch_and_display_records():
+    print("Fetching missing persons from the database...")
+    missing_persons = fetch_missing_persons()
+
+    if not missing_persons:
+        print("No records found in the database.")
+        return
+
+    for person in missing_persons:
+        print(f"Name: {person['name']}")
+        print(f"Metadata: {person['metadata']}")
+        print(f"Image File ID: {person['image_file_id']}")
+        print("-" * 40)
+
+if __name__ == "__main__":
+    fetch_and_display_records()
