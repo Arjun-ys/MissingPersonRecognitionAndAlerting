@@ -9,28 +9,50 @@ def connect_to_db():
     fs = GridFS(db)
     return db, fs
 
-# Store image and metadata
-def store_person(image_path, name, metadata):
-    _, fs = connect_to_db()
-    with open(image_path, "rb") as f:
-        file_id = fs.put(f, filename=name, metadata=metadata)
-    return file_id
-
-# List metadata for missing persons
-def list_missing_persons():
-    _, fs = connect_to_db()
-    return [{"id": str(file._id), "name": file.filename, "metadata": file.metadata} for file in fs.find()]
-
-# Fetch all missing persons
-def fetch_missing_persons():
-    _, fs = connect_to_db()
-    missing_persons = []
-    for file in fs.find():
-        image_data = file.read()
-        metadata = file.metadata
-        missing_persons.append({
-            "name": file.filename,
-            "image": image_data,
-            "metadata": metadata
+# Store a person in the database
+def store_person(name, metadata, image_bytes):
+    db, fs = connect_to_db()
+    try:
+        file_id = fs.put(image_bytes, filename=name)
+        db.missing_persons.insert_one({
+            "name": name,
+            "metadata": metadata,
+            "image_file_id": file_id
         })
-    return missing_persons
+        print(f"Stored {name} in the database.")
+    except Exception as e:
+        print(f"Error storing person: {e}")
+
+# Fetch all missing persons from the database
+def fetch_missing_persons():
+    db, _ = connect_to_db()
+    try:
+        return list(db.missing_persons.find({}))
+    except Exception as e:
+        print(f"Error fetching missing persons: {e}")
+        return []
+
+# Get an image by file ID
+def get_image(file_id):
+    _, fs = connect_to_db()
+    try:
+        file = fs.get(ObjectId(file_id))
+        return file.read()
+    except Exception as e:
+        print(f"Error retrieving file: {e}")
+        return None
+
+# Delete a person from the database
+def delete_person(name):
+    db, fs = connect_to_db()
+    try:
+        person = db.missing_persons.find_one({"name": name})
+        if person:
+            file_id = person["image_file_id"]
+            fs.delete(ObjectId(file_id))
+            db.missing_persons.delete_one({"name": name})
+            print(f"Deleted {name} from the database.")
+        else:
+            print(f"No record found for {name}.")
+    except Exception as e:
+        print(f"Error deleting person: {e}")
