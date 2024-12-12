@@ -82,6 +82,7 @@ python main.py --mode recognize-video
 Run the project with test data to verify functionality. For example:
 - Add a known face image to the database.
 - Run `recognize-image` or `recognize-video` modes to test recognition and alerts.
+- Press the 'q' key to stop the video feed
 
 ## Troubleshooting
 1. **MongoDB Connection Issues**:
