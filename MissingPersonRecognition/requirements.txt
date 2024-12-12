@@ -1,5 +1,4 @@
 face_recognition
 opencv-python
-opencv-python-headless
 pymongo
-gridfs
+python-dotenv
